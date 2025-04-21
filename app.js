@@ -13,6 +13,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
+// Ruta para Errores
+app.use((req, res) => {
+    //res.status(404).send('<h1> Error 404 </h1>')
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'))
+})
 // Levanta el servidor en el puerto enviado por PORT
 // Iniciar con 'npm start'
 app.listen(PORT, () => {
