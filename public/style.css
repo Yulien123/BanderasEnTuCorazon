@@ -29,6 +29,13 @@ body {
     color: #001e4d;
     font-weight: 600;
 }
+#aviso{
+    font-size: 14px;
+    color: #001e4d;
+    font-weight: 600;
+    margin: 10px 0;
+    padding-left: 20px;
+}
 .btn {
     background: #fff;
     color: #222;
@@ -46,6 +53,7 @@ body {
     cursor: not-allowed; /* Cambia el cursor para indicar que está bloqueado */
     position: relative;
 }
+
 #siguiente-btn {
     background: #001e4d;
     color: #fff;

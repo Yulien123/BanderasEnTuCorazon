@@ -24,40 +24,47 @@ const URL_CONTINENTES = "https://restcountries.com/v3.1/all?fields=name,continen
 
 // Arreglo de preguntas y respuestas
 const preguntas = [
-    { pregunta: "¿Cual es el país de la siguiente ciudad capital?",
-      respuestas: [
-        { respuesta: "res 1", correcta: true }, // Respuesta correctaa
-        { respuesta: "res 2", correcta: false },
-        { respuesta: "res 3", correcta: false },
-        { respuesta: "res 4", correcta: false }
-    ]},
-    { pregunta: "¿El país xx esta representado por la siguiente bandera?",
-      respuestas: [
-        { respuesta: "res 1", correcta: false },
-        { respuesta: "res 2", correcta: true }, // Respuesta correctaa
-        { respuesta: "res 3", correcta: false },
-        { respuesta: "res 4", correcta: false }
-    ]},
-    { pregunta: "¿Cuantos países limítrofes tiene el siguiente país?",
-      respuestas: [
-        { respuesta: "res 1", correcta: false },
-        { respuesta: "res 2", correcta: true }, // Respuesta correctaa
-        { respuesta: "res 3", correcta: false },
-        { respuesta: "res 4", correcta: false }
-    ]}
+    {
+        pregunta: "¿Cual es el país de la siguiente ciudad capital?",
+        respuestas: [
+            { respuesta: "res 1", correcta: true }, // Respuesta correctaa
+            { respuesta: "res 2", correcta: false },
+            { respuesta: "res 3", correcta: false },
+            { respuesta: "res 4", correcta: false }
+        ]
+    },
+    {
+        pregunta: "¿El país xx esta representado por la siguiente bandera?",
+        respuestas: [
+            { respuesta: "res 1", correcta: false },
+            { respuesta: "res 2", correcta: true }, // Respuesta correctaa
+            { respuesta: "res 3", correcta: false },
+            { respuesta: "res 4", correcta: false }
+        ]
+    },
+    {
+        pregunta: "¿Cuantos países limítrofes tiene el siguiente país?",
+        respuestas: [
+            { respuesta: "res 1", correcta: false },
+            { respuesta: "res 2", correcta: true }, // Respuesta correctaa
+            { respuesta: "res 3", correcta: false },
+            { respuesta: "res 4", correcta: false }
+        ]
+    }
 ]
 
 // Elementos del DOM
 const preguntaElement = document.getElementById("pregunta") // Elemento que muestra la pregunta actual
 const respuestaButtons = document.getElementById("respuestas-buttons") // Contenedor de botones de respuestas
 const siguienteButton = document.getElementById("siguiente-btn") // Elemento del botón "Siguiente"
+const avisoElement = document.getElementById("aviso");
 
 // Variables para el cuestionario
 let preguntaActualIndex = 0 // índice de la pregunta actual 
 
 // función para inicia el cuestionario
 function comenzarCuestionario() {
-    console.log('---Inicia el juego---'); 
+    console.log('---Inicia el juego---');
     siguienteButton.innerHTML = "Siguiente" // Cambia el texto del botón a "Siguiente"
     mostrarPregunta() // Mostrar la primera pregunta
 }
@@ -90,18 +97,30 @@ function crearBotonRespuesta(respuesta) {
 
 // Funcion para manejar la selección de respuesta
 function seleccionarRespuesta(e) {
-    console.log('---Respuesta seleccionada---')
+    console.log('---Respuesta seleccionada---');
     const botonSeleccionado = e.target; // Obtener el botón que fue clickeado
-    console.log('la respuesta es: ', botonSeleccionado.dataset.correcta); // Mostrar en consola si la respuesta es true o false
-    botonSeleccionado.classList.add(botonSeleccionado.dataset.correcta === 'true' ? 'correcta' : 'incorrecta') // Agrega la clase correcta o incorrecta al botón
+    console.log('La respuesta es: ', botonSeleccionado.dataset.correcta); // Mostrar en consola si la respuesta es correcta o no
 
-    // Deshabilitar todos los botones una vez que el usuario ha seleccionado una opción.
-    // Convierte los elementos hijos del respuestaButtons en un arreglo y los recorre para deshabilitar cada botón.
-    Array.from(respuestaButtons.children).forEach(boton => {
-        boton.disabled = true // Deshabilitar los botones no seleccionados
-    })
-    siguienteButton.style.display = "block"; // Mostrar el botón "Siguiente" después de seleccionar una respuesta
+    // muestra el aviso de respuesta correcta o incorrecta 
+    if (botonSeleccionado.dataset.correcta === 'true') {
+        botonSeleccionado.classList.add("correcta"); // Agregar clase correcta solo si la respuesta es correcta
+        avisoElement.innerHTML = "¡Correcto! 🎉";
+    } else {
+        botonSeleccionado.classList.add("incorrecta"); // Agregar clase incorrecta solo si la respuesta es incorrecta
+        const respuestaCorrecta = preguntas[preguntaActualIndex].respuestas.find(r => r.correcta); // Buscar la respuesta correcta
+        avisoElement.innerHTML = `Incorrecto ❌. La respuesta correcta era: ${respuestaCorrecta.respuesta}`;
+
+        // Resaltar el botón de la respuesta correcta en verde
+        Array.from(respuestaButtons.children).forEach(boton => {
+            if (boton.innerHTML === respuestaCorrecta.respuesta) {
+                boton.classList.add("correcta"); // Agregar clase correcta al botón de la respuesta correcta
+            }
+            boton.disabled = true; // Deshabilitar los botones no seleccionados
+        });
+    }
+    siguienteButton.style.display = "block"; // Mostrar el botón "Siguiente"
 }
+
 
 // Funcion para limpiar respuestas anteriores y ocultar el btn siguiente
 function reiniciar() {
@@ -121,7 +140,7 @@ function manejarBotonSiguiente() {
 // Agregar un evento de clic al botón "Siguiente"
 siguienteButton.addEventListener("click", () => {
     preguntaActualIndex < preguntas.length ? manejarBotonSiguiente() : alert("Cuestionario terminado"); // Si hay más preguntas, mostrar la siguiente; si no, mostrar un mensaje de finalización
-}); 
+});
 
 
 
