@@ -17,6 +17,10 @@ const URL_CONTINENTES = "https://restcountries.com/v3.1/all?fields=name,continen
 */
 // US1: pueden tocar 3 tipos diferentes de preguntas (x 10 Preguntas)
 // US2: Puedo seleccionar una respuesta entre 4 opciones 
+// US3: Cuando yo respondo correctamente la aplicación me lo dice y puedo moverme a la siguiente pregunta. 
+// US4: Cuando yo respondo incorrectamente la aplicación me índica del error, me dice cual es la respuesta correcta y puedo continuar con otra pregunta. 
+
+// buscar la forma de que las respuestas las sirva por pantalla con un orden aleatorio.
 
 // Arreglo de preguntas y respuestas
 const preguntas = [
@@ -71,8 +75,25 @@ function crearBotonRespuesta(respuesta) {
     boton.innerHTML = respuesta.respuesta; // Asigna el texto de la respuesta
     boton.classList.add("btn"); // Agrega una clase al botón
     respuestaButtons.appendChild(boton); // Agregar el botón al contenedor de respuestas
+
+    // Una vez que el usuario selecciona una respuesta, se llama a la función seleccionarRespuesta
+    // y se le pasa el botón como argumento
+    boton.dataset.correcta = respuesta.correcta || false; // Almacena ANTES de seccionar, si la respuesta es correcta o no en un atributo de datos del botón
+    boton.addEventListener("click", seleccionarRespuesta); // Agregar un evento de clic al botón y le pasa la funcion seleccionarRespuesta
 }
 
+// Funcion para manejar la selección de respuesta
+function seleccionarRespuesta(e) {
+    const botonSeleccionado = e.target; // Obtener el botón que fue clickeado
+    console.log('respuesta seleccionada: ', botonSeleccionado.dataset.correcta); // Mostrar en consola si la respuesta es true o false
+     
+    // Deshabilitar todos los botones una vez que el usuario ha seleccionado una opción.
+    // Convierte los elementos hijos del respuestaButtons en un arreglo y los recorre para deshabilitar cada botón.
+    Array.from(respuestaButtons.children).forEach(boton => {
+        boton.disabled = true // Deshabilitar el botón
+    })
+}
+    
 /*
 //funcion de prueba: Fetch a la API de los paises y mostrar en consola el nombre de los paises
 async function cargarPaises() {

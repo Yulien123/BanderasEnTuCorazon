@@ -42,3 +42,7 @@ body {
     cursor: pointer;
     transition: all 0.3s;
 }
+.btn:disabled {
+    cursor: not-allowed; /* Cambia el cursor para indicar que está bloqueado */
+    position: relative;
+}
