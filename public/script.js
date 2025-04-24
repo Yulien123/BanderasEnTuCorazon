@@ -50,17 +50,22 @@ const preguntas = [
 // Elementos del DOM
 const preguntaElement = document.getElementById("pregunta") // Elemento que muestra la pregunta actual
 const respuestaButtons = document.getElementById("respuestas-buttons") // Contenedor de botones de respuestas
+const siguienteButton = document.getElementById("siguiente-btn") // Elemento del botón "Siguiente"
 
 // Variables para el cuestionario
 let preguntaActualIndex = 0 // índice de la pregunta actual 
 
 // función para inicia el cuestionario
 function comenzarCuestionario() {
+    console.log('---Inicia el juego---'); 
+    siguienteButton.innerHTML = "Siguiente" // Cambia el texto del botón a "Siguiente"
     mostrarPregunta() // Mostrar la primera pregunta
 }
 
 // función para mostrar la pregunta actual
 function mostrarPregunta() {
+    console.log(`---Muestra la pregunta ---`);
+    reiniciar() // Limpiar respuestas anteriores y ocultar el botón "Siguiente"
     // Obtener la pregunta actual del arreglo
     const preguntaActual = preguntas[preguntaActualIndex] // Obtener la pregunta actual del arreglo
     preguntaElement.innerHTML = `${preguntaActualIndex + 1}. ${preguntaActual.pregunta}` // Mostrar el nro de pregunta y pregunta en el DOM
@@ -71,6 +76,7 @@ function mostrarPregunta() {
 
 // Funcion para crear botones de respuestas
 function crearBotonRespuesta(respuesta) {
+    console.log('---Creando botones de respuestas---')
     const boton = document.createElement("button"); // Crear un botón HTML
     boton.innerHTML = respuesta.respuesta; // Asigna el texto de la respuesta
     boton.classList.add("btn"); // Agrega una clase al botón
@@ -84,16 +90,47 @@ function crearBotonRespuesta(respuesta) {
 
 // Funcion para manejar la selección de respuesta
 function seleccionarRespuesta(e) {
+    console.log('---Respuesta seleccionada---')
     const botonSeleccionado = e.target; // Obtener el botón que fue clickeado
-    console.log('respuesta seleccionada: ', botonSeleccionado.dataset.correcta); // Mostrar en consola si la respuesta es true o false
-     
+    console.log('la respuesta es: ', botonSeleccionado.dataset.correcta); // Mostrar en consola si la respuesta es true o false
+    botonSeleccionado.classList.add(botonSeleccionado.dataset.correcta === 'true' ? 'correcta' : 'incorrecta') // Agrega la clase correcta o incorrecta al botón
+
     // Deshabilitar todos los botones una vez que el usuario ha seleccionado una opción.
     // Convierte los elementos hijos del respuestaButtons en un arreglo y los recorre para deshabilitar cada botón.
     Array.from(respuestaButtons.children).forEach(boton => {
-        boton.disabled = true // Deshabilitar el botón
+        boton.disabled = true // Deshabilitar los botones no seleccionados
     })
+    siguienteButton.style.display = "block"; // Mostrar el botón "Siguiente" después de seleccionar una respuesta
 }
-    
+
+// Funcion para limpiar respuestas anteriores y ocultar el btn siguiente
+function reiniciar() {
+    console.log('---Reiniciando el cuestionario---')
+    siguienteButton.style.display = "none"; // Ocultar el botón "Siguiente"
+    respuestaButtons.innerHTML = ""; // Limpiar el contenedor de respuestas
+}
+
+// Funcion para manejar el clic en el botón "Siguiente"
+function manejarBotonSiguiente() {
+    console.log('---Botón siguiente clickeado---')
+    if (++preguntaActualIndex < preguntas.length) { // Incrementar el índice de la pregunta actual y verificar si hay más preguntas
+        mostrarPregunta(); // Mostrar la siguiente pregunta
+    }
+}
+
+// Agregar un evento de clic al botón "Siguiente"
+siguienteButton.addEventListener("click", () => {
+    preguntaActualIndex < preguntas.length ? manejarBotonSiguiente() : alert("Cuestionario terminado"); // Si hay más preguntas, mostrar la siguiente; si no, mostrar un mensaje de finalización
+}); 
+
+
+
+
+
+
+
+
+
 /*
 //funcion de prueba: Fetch a la API de los paises y mostrar en consola el nombre de los paises
 async function cargarPaises() {
