@@ -19,8 +19,14 @@ const URL_CONTINENTES = "https://restcountries.com/v3.1/all?fields=name,continen
 // US2: Puedo seleccionar una respuesta entre 4 opciones 
 // US3: Cuando yo respondo correctamente la aplicación me lo dice y puedo moverme a la siguiente pregunta. 
 // US4: Cuando yo respondo incorrectamente la aplicación me índica del error, me dice cual es la respuesta correcta y puedo continuar con otra pregunta. 
-
+/*US5: Cuando termino de contestar las preguntas (10 en total),
+       el sistema me brinda información sobre:
+                - la cantidad de preguntas respondidas correcta e incorrectamente, 
+                -la duración total de la partida 
+                -y el tiempo promedio tardado en responder cada pregunta.  */
+                
 // buscar la forma de que las respuestas las sirva por pantalla con un orden aleatorio.
+// tambien la forma en servir las preguntas de forma aleatoria. o hacer 10 preguntas o 3 aleatorias de cada tipo hasta llegar a 10.
 
 // Arreglo de preguntas y respuestas
 const preguntas = [
@@ -61,18 +67,33 @@ const avisoElement = document.getElementById("aviso");
 
 // Variables para el cuestionario
 let preguntaActualIndex = 0 // índice de la pregunta actual 
+let cant_correctas = 0 // contador de respuestas correctas
+let cant_incorrectas = 0 // contador de respuestas incorrectas
+let tiempoInicio, tiempoFin; // Variables para medir el tiempo de la partida
+let tiemposRespuestas = []; // Arreglo para almacenar los tiempos de respuesta
+let timepoInicioPregunta; // Variable para almacenar el tiempo de inicio de la pregunta actual
 
 // función para inicia el cuestionario
 function comenzarCuestionario() {
-    console.log('---Inicia el juego---');
+    console.log('\n---Inicia el juego---');
+
+    tiempoInicio = Date.now(); // Guardar el tiempo de inicio
+    preguntaActualIndex = 0 // Reiniciar el índice de la pregunta actual
+    cant_correctas = 0 // Reiniciar el contador de respuestas correctas
+    cant_incorrectas = 0 // Reiniciar el contador de respuestas incorrectas
+    avisoElement.innerHTML = ""; // Limpiar el aviso de respuesta correcta o incorrecta
     siguienteButton.innerHTML = "Siguiente" // Cambia el texto del botón a "Siguiente"
+
     mostrarPregunta() // Mostrar la primera pregunta
 }
 
 // función para mostrar la pregunta actual
 function mostrarPregunta() {
-    console.log(`---Muestra la pregunta ---`);
+    console.log('---Muestra la pregunta ---');
     reiniciar() // Limpiar respuestas anteriores y ocultar el botón "Siguiente"
+    
+    timepoInicioPregunta = Date.now(); // Guardar el tiempo de inicio de la pregunta actual
+    
     // Obtener la pregunta actual del arreglo
     const preguntaActual = preguntas[preguntaActualIndex] // Obtener la pregunta actual del arreglo
     preguntaElement.innerHTML = `${preguntaActualIndex + 1}. ${preguntaActual.pregunta}` // Mostrar el nro de pregunta y pregunta en el DOM
@@ -97,18 +118,25 @@ function crearBotonRespuesta(respuesta) {
 
 // Funcion para manejar la selección de respuesta
 function seleccionarRespuesta(e) {
-    console.log('---Respuesta seleccionada---');
+    console.log('¡Respuesta seleccionada!');
     const botonSeleccionado = e.target; // Obtener el botón que fue clickeado
-    console.log('La respuesta es: ', botonSeleccionado.dataset.correcta); // Mostrar en consola si la respuesta es correcta o no
+
+    // Guardar el tiempo de respuesta
+    let tiempoFinRespuesta = Date.now(); // Guardar el tiempo de fin de la respuesta
+    let tiempoRespuesta = (tiempoFinRespuesta - timepoInicioPregunta) / 1000; // Calcular el tiempo de respuesta en segundos
+    tiemposRespuestas.push(tiempoRespuesta); // Almacenar el tiempo de respuesta en el arreglo
+    
 
     // muestra el aviso de respuesta correcta o incorrecta 
     if (botonSeleccionado.dataset.correcta === 'true') {
-        botonSeleccionado.classList.add("correcta"); // Agregar clase correcta solo si la respuesta es correcta
-        avisoElement.innerHTML = "¡Correcto! 🎉";
+        botonSeleccionado.classList.add("correcta") // Agregar clase correcta solo si la respuesta es correcta
+        avisoElement.innerHTML = "¡Correcto! 🎉"
+        cant_correctas++; // Incrementar el contador de respuestas correctas
     } else {
         botonSeleccionado.classList.add("incorrecta"); // Agregar clase incorrecta solo si la respuesta es incorrecta
         const respuestaCorrecta = preguntas[preguntaActualIndex].respuestas.find(r => r.correcta); // Buscar la respuesta correcta
         avisoElement.innerHTML = `Incorrecto ❌. La respuesta correcta era: ${respuestaCorrecta.respuesta}`;
+        cant_incorrectas++; // Incrementar el contador de respuestas incorrectas
 
         // Resaltar el botón de la respuesta correcta en verde
         Array.from(respuestaButtons.children).forEach(boton => {
@@ -118,7 +146,9 @@ function seleccionarRespuesta(e) {
             boton.disabled = true; // Deshabilitar los botones no seleccionados
         });
     }
+
     siguienteButton.style.display = "block"; // Mostrar el botón "Siguiente"
+    console.log(`Esta respuesta es: ${botonSeleccionado.dataset.correcta}, Tardó: ${tiempoRespuesta.toFixed(2)} segundos`); // Mostrar en consola si la respuesta es correcta o incorrecta y el tiempo de respuesta
 }
 
 
@@ -127,21 +157,47 @@ function reiniciar() {
     console.log('---Reiniciando el cuestionario---')
     siguienteButton.style.display = "none"; // Ocultar el botón "Siguiente"
     respuestaButtons.innerHTML = ""; // Limpiar el contenedor de respuestas
+    avisoElement.innerHTML = ""; // Limpiar el aviso de respuesta correcta o incorrecta
+    preguntaElement.innerHTML = ""; // Limpiar el texto de la pregunta
 }
 
 // Funcion para manejar el clic en el botón "Siguiente"
 function manejarBotonSiguiente() {
     console.log('---Botón siguiente clickeado---')
+
     if (++preguntaActualIndex < preguntas.length) { // Incrementar el índice de la pregunta actual y verificar si hay más preguntas
-        mostrarPregunta(); // Mostrar la siguiente pregunta
+        mostrarPregunta(); // si hay mas preguntas, mostrar la siguiente pregunta
+    } else {
+        mostrarResultados(); // Si no hay más preguntas, mostrar los resultados
     }
+}
+
+function mostrarResultados() {
+    console.log('---Mostrando resultados---')
+
+    tiempoFin = Date.now(); // Guardar el tiempo de fin
+    const tiempoTotal = (tiempoFin - tiempoInicio) / 1000; // Calcular el tiempo total en segundos
+
+    // Calcular el tiempo promedio por pregunta
+    const tiempoPromedio = tiemposRespuestas.reduce((a, b) => a + b, 0) / tiemposRespuestas.length || 0; // Calcular el tiempo promedio de respuesta
+
+    reiniciar(); // Limpiar respuestas anteriores y ocultar el botón "Siguiente"
+    
+    avisoElement.innerHTML = `¡Fin del Juego! | Correctas: ${cant_correctas} | Incorrectas: ${cant_incorrectas} | Duración de partida: ${tiempoTotal.toFixed(2)} segundos | Tiempo promedio por pregunta: ${tiempoPromedio.toFixed(2)} segundos` // Mostrar el resultado en el DOM
+    siguienteButton.innerHTML = "Volver a Jugar"; // Cambiar el texto del botón 
+    siguienteButton.style.display = "block"; // Mostrar el botón "Volver a Jugar"
+
+    console.log(`---Fin del juego---`)
+    console.log(`        Correctas: ${cant_correctas} 
+        Incorrectas: ${cant_incorrectas} 
+        Duración de partida: ${tiempoTotal.toFixed(2)} segundos 
+        Tiempo Promedio por pregunta: ${tiempoPromedio.toFixed(2)} sec.`); // Mostrar en consola el resultado
 }
 
 // Agregar un evento de clic al botón "Siguiente"
 siguienteButton.addEventListener("click", () => {
-    preguntaActualIndex < preguntas.length ? manejarBotonSiguiente() : alert("Cuestionario terminado"); // Si hay más preguntas, mostrar la siguiente; si no, mostrar un mensaje de finalización
-});
-
+    preguntaActualIndex < preguntas.length ? manejarBotonSiguiente() : comenzarCuestionario(); // Si hay más preguntas, manejar el botón "Siguiente", si no, reiniciar el cuestionario
+})
 
 
 
