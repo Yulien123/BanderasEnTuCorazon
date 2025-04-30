@@ -1,208 +1,211 @@
-/* Se pide:
--Lista de paises y su ciudad capital
--Banderas de esos paises
-- Paises limitrofes(cantidad de un pais)
-- Inventar alguna pregunta(?) como en que continente esta cierto pais
+/**
+ * URL de la API de países con los campos necesarios
+ */
+const URL_ALL = "https://restcountries.com/v3.1/all?fields=name,capital,borders,flags,continents,translations";
 
-¿Cual es el país de la siguiente ciudad capital? (3 puntos) 
-¿El país xx esta representado por la siguiente bandera? (5 puntos) 
-¿Cuantos países limítrofes tiene el siguiente país? (3 puntos)
-
-const URL_ALL = "https://restcountries.com/v3.1/all?fields=name,capital,borders,flags,continents,translations"
-const URL_PAISES = "https://restcountries.com/v3.1/all?fields=name"
-const URL_CAPITALES = "https://restcountries.com/v3.1/all?fields=name,capital"
-const URL_LIMITROFES = "https://restcountries.com/v3.1/all?fields=name,borders"
-const URL_BANDERAS = "https://restcountries.com/v3.1/all?fields=name,flags"
-const URL_CONTINENTES = "https://restcountries.com/v3.1/all?fields=name,continents"
-*/
-// US1: pueden tocar 3 tipos diferentes de preguntas (x 10 Preguntas)
-// US2: Puedo seleccionar una respuesta entre 4 opciones 
-// US3: Cuando yo respondo correctamente la aplicación me lo dice y puedo moverme a la siguiente pregunta. 
-// US4: Cuando yo respondo incorrectamente la aplicación me índica del error, me dice cual es la respuesta correcta y puedo continuar con otra pregunta. 
-/*US5: Cuando termino de contestar las preguntas (10 en total),
-       el sistema me brinda información sobre:
-                - la cantidad de preguntas respondidas correcta e incorrectamente, 
-                -la duración total de la partida 
-                -y el tiempo promedio tardado en responder cada pregunta.  */
-                
-// buscar la forma de que las respuestas las sirva por pantalla con un orden aleatorio.
-// tambien la forma en servir las preguntas de forma aleatoria. o hacer 10 preguntas o 3 aleatorias de cada tipo hasta llegar a 10.
-
-// Arreglo de preguntas y respuestas
+/**
+ * Preguntas del cuestionario (rotando tipos)
+ */
 const preguntas = [
-    {
-        pregunta: "¿Cual es el país de la siguiente ciudad capital?",
-        respuestas: [
-            { respuesta: "res 1", correcta: true }, // Respuesta correctaa
-            { respuesta: "res 2", correcta: false },
-            { respuesta: "res 3", correcta: false },
-            { respuesta: "res 4", correcta: false }
-        ]
-    },
-    {
-        pregunta: "¿El país xx esta representado por la siguiente bandera?",
-        respuestas: [
-            { respuesta: "res 1", correcta: false },
-            { respuesta: "res 2", correcta: true }, // Respuesta correctaa
-            { respuesta: "res 3", correcta: false },
-            { respuesta: "res 4", correcta: false }
-        ]
-    },
-    {
-        pregunta: "¿Cuantos países limítrofes tiene el siguiente país?",
-        respuestas: [
-            { respuesta: "res 1", correcta: false },
-            { respuesta: "res 2", correcta: true }, // Respuesta correctaa
-            { respuesta: "res 3", correcta: false },
-            { respuesta: "res 4", correcta: false }
-        ]
-    }
-]
+    { pregunta: "¿A qué país pertenece la ciudad ", tipo: "ciudad" },
+    { pregunta: "¿A qué país le pertenece esta bandera ", tipo: "bandera" },
+    { pregunta: "¿Cuántos países limítrofes tiene el país ", tipo: "limitrofes" }
+];
 
 // Elementos del DOM
-const preguntaElement = document.getElementById("pregunta") // Elemento que muestra la pregunta actual
-const respuestaButtons = document.getElementById("respuestas-buttons") // Contenedor de botones de respuestas
-const siguienteButton = document.getElementById("siguiente-btn") // Elemento del botón "Siguiente"
+const preguntaElement = document.getElementById("pregunta");
+const respuestaButtons = document.getElementById("respuestas-buttons");
+const siguienteButton = document.getElementById("siguiente-btn");
 const avisoElement = document.getElementById("aviso");
+const numeroPreguntaElement = document.getElementById("numero-pregunta"); // Nuevo elemento para el número de pregunta
 
-// Variables para el cuestionario
-let preguntaActualIndex = 0 // índice de la pregunta actual 
-let cant_correctas = 0 // contador de respuestas correctas
-let cant_incorrectas = 0 // contador de respuestas incorrectas
-let tiempoInicio, tiempoFin; // Variables para medir el tiempo de la partida
-let tiemposRespuestas = []; // Arreglo para almacenar los tiempos de respuesta
-let timepoInicioPregunta; // Variable para almacenar el tiempo de inicio de la pregunta actual
+// Variables del cuestionario
+let preguntaActualIndex = 0;
+let cantCorrectas = 0;
+let cantIncorrectas = 0;
+let tiempoInicio, tiempoFin;
+let tiemposRespuestas = [];
 
-// función para inicia el cuestionario
+/**
+ * Inicia el cuestionario
+ */
 function comenzarCuestionario() {
     console.log('\n---Inicia el juego---');
 
-    tiempoInicio = Date.now(); // Guardar el tiempo de inicio
-    preguntaActualIndex = 0 // Reiniciar el índice de la pregunta actual
-    cant_correctas = 0 // Reiniciar el contador de respuestas correctas
-    cant_incorrectas = 0 // Reiniciar el contador de respuestas incorrectas
-    avisoElement.innerHTML = ""; // Limpiar el aviso de respuesta correcta o incorrecta
-    siguienteButton.innerHTML = "Siguiente" // Cambia el texto del botón a "Siguiente"
+    tiempoInicio = Date.now();
+    preguntaActualIndex = 0;
+    cantCorrectas = 0;
+    cantIncorrectas = 0;
+    tiemposRespuestas = [];
 
-    mostrarPregunta() // Mostrar la primera pregunta
+    avisoElement.innerHTML = "";
+    siguienteButton.textContent = "Siguiente";
+    siguienteButton.style.display = "none";
+    numeroPreguntaElement.innerHTML = `Pregunta 1 / 10`; // Inicializar número de pregunta
+
+    mostrarPregunta();
 }
 
-// función para mostrar la pregunta actual
-function mostrarPregunta() {
-    console.log('---Muestra la pregunta ---');
-    reiniciar() // Limpiar respuestas anteriores y ocultar el botón "Siguiente"
-    
-    timepoInicioPregunta = Date.now(); // Guardar el tiempo de inicio de la pregunta actual
-    
-    // Obtener la pregunta actual del arreglo
-    const preguntaActual = preguntas[preguntaActualIndex] // Obtener la pregunta actual del arreglo
-    preguntaElement.innerHTML = `${preguntaActualIndex + 1}. ${preguntaActual.pregunta}` // Mostrar el nro de pregunta y pregunta en el DOM
-
-    // Crear los botones de respuesta dinámicamente
-    preguntaActual.respuestas.forEach(crearBotonRespuesta);
+/**
+ * Obtiene los datos de la API
+ */
+async function obtenerDatos() {
+    try {
+        const respuesta = await fetch(URL_ALL);
+        return await respuesta.json();
+    } catch (error) {
+        console.error("Error al obtener datos", error);
+        return [];
+    }
 }
 
-// Funcion para crear botones de respuestas
-function crearBotonRespuesta(respuesta) {
-    console.log('---Creando botones de respuestas---')
-    const boton = document.createElement("button"); // Crear un botón HTML
-    boton.innerHTML = respuesta.respuesta; // Asigna el texto de la respuesta
-    boton.classList.add("btn"); // Agrega una clase al botón
-    respuestaButtons.appendChild(boton); // Agregar el botón al contenedor de respuestas
-
-    // Una vez que el usuario selecciona una respuesta, se llama a la función seleccionarRespuesta
-    // y se le pasa el botón como argumento
-    boton.dataset.correcta = respuesta.correcta || false; // Almacena ANTES de seccionar, si la respuesta es correcta o no en un atributo de datos del botón
-    boton.addEventListener("click", seleccionarRespuesta); // Agregar un evento de clic al botón y le pasa la funcion seleccionarRespuesta
+/**
+ * Devuelve un país aleatorio de la lista
+ */
+function obtenerPaisAleatorio(paises) {
+    return paises[Math.floor(Math.random() * paises.length)];
 }
 
-// Funcion para manejar la selección de respuesta
+/**
+ * Genera respuestas aleatorias, asegurando que la correcta no esté siempre en la misma posición
+ */
+function generarRespuestas(paises, correcta, tipo) {
+    let respuestas = [];
+
+    if (tipo === "limitrofes") {
+        let cantidadLimitrofes = paises.find(pais => pais.name.common === correcta)?.borders?.length || 0;
+        respuestas.push({ respuesta: cantidadLimitrofes === 0 ? "No tiene" : cantidadLimitrofes, correcta: true });
+
+        const opciones = [...new Set(paises.map(pais => pais.borders?.length || 0))]
+            .filter(num => num !== cantidadLimitrofes)
+            .map(num => num === 0 ? "No tiene" : num) // Reemplazar 0 por "No tiene"
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3);
+
+        respuestas = respuestas.concat(opciones.map(respuesta => ({ respuesta, correcta: false })));
+    } else {
+        respuestas.push({ respuesta: correcta, correcta: true });
+
+        const opciones = paises
+            .filter(pais => pais.name.common !== correcta)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3)
+            .map(pais => ({ respuesta: pais.name.common, correcta: false }));
+
+        respuestas = respuestas.concat(opciones);
+    }
+
+    respuestas.sort(() => Math.random() - 0.5);
+    return respuestas;
+}
+
+/**
+ * Muestra la pregunta y las opciones de respuesta
+ */
+async function mostrarPregunta() {
+    const paises = await obtenerDatos();
+    const paisAleatorio = obtenerPaisAleatorio(paises);
+
+    // Alternar tipo de pregunta en cada iteración
+    const preguntaActual = preguntas[preguntaActualIndex % preguntas.length];
+
+    avisoElement.innerHTML = "";
+    numeroPreguntaElement.innerHTML = `Pregunta ${preguntaActualIndex + 1} / 10`; // Mostrar número de pregunta
+
+    let comodin = preguntaActual.tipo === "ciudad" ? paisAleatorio.capital?.[0] || "Desconocida"
+                : preguntaActual.tipo === "bandera" ? `<img src="${paisAleatorio.flags.svg}" alt="Bandera">`
+                : paisAleatorio.name.common;
+
+    preguntaElement.innerHTML = `${preguntaActual.pregunta} ${comodin}?`;
+
+    let respuestas = generarRespuestas(paises, paisAleatorio.name.common, preguntaActual.tipo);
+    respuestaButtons.innerHTML = "";
+
+    respuestas.forEach(({ respuesta, correcta }) => {
+        const boton = document.createElement("button");
+        boton.textContent = respuesta;
+        boton.classList.add("btn");
+        boton.dataset.correcta = correcta;
+        boton.addEventListener("click", seleccionarRespuesta);
+        respuestaButtons.appendChild(boton);
+    });
+}
+
+/**
+ * Maneja la selección de respuesta
+ */
 function seleccionarRespuesta(e) {
     console.log('¡Respuesta seleccionada!');
-    const botonSeleccionado = e.target; // Obtener el botón que fue clickeado
+    const botonSeleccionado = e.target;
 
-    // Guardar el tiempo de respuesta
-    let tiempoFinRespuesta = Date.now(); // Guardar el tiempo de fin de la respuesta
-    let tiempoRespuesta = (tiempoFinRespuesta - timepoInicioPregunta) / 1000; // Calcular el tiempo de respuesta en segundos
-    tiemposRespuestas.push(tiempoRespuesta); // Almacenar el tiempo de respuesta en el arreglo
-    
+    const tiempoRespuesta = (Date.now() - tiempoInicio) / 1000;
+    tiemposRespuestas.push(tiempoRespuesta);
 
-    // muestra el aviso de respuesta correcta o incorrecta 
     if (botonSeleccionado.dataset.correcta === 'true') {
-        botonSeleccionado.classList.add("correcta") // Agregar clase correcta solo si la respuesta es correcta
-        avisoElement.innerHTML = "¡Correcto! 🎉"
-        cant_correctas++; // Incrementar el contador de respuestas correctas
+        botonSeleccionado.classList.add("correcta");
+        avisoElement.innerHTML = "¡Correcto! 🎉";
+        cantCorrectas++;
     } else {
-        botonSeleccionado.classList.add("incorrecta"); // Agregar clase incorrecta solo si la respuesta es incorrecta
-        const respuestaCorrecta = preguntas[preguntaActualIndex].respuestas.find(r => r.correcta); // Buscar la respuesta correcta
-        avisoElement.innerHTML = `Incorrecto ❌. La respuesta correcta era: ${respuestaCorrecta.respuesta}`;
-        cant_incorrectas++; // Incrementar el contador de respuestas incorrectas
-
-        // Resaltar el botón de la respuesta correcta en verde
-        Array.from(respuestaButtons.children).forEach(boton => {
-            if (boton.innerHTML === respuestaCorrecta.respuesta) {
-                boton.classList.add("correcta"); // Agregar clase correcta al botón de la respuesta correcta
-            }
-            boton.disabled = true; // Deshabilitar los botones no seleccionados
-        });
+        botonSeleccionado.classList.add("incorrecta");
+        const respuestaCorrecta = [...respuestaButtons.children].find(boton => boton.dataset.correcta === "true");
+        avisoElement.innerHTML = `Incorrecto ❌. La respuesta correcta era: ${respuestaCorrecta.textContent}`;
+        cantIncorrectas++;
+        respuestaCorrecta.classList.add("correcta");
     }
 
-    siguienteButton.style.display = "block"; // Mostrar el botón "Siguiente"
-    console.log(`Esta respuesta es: ${botonSeleccionado.dataset.correcta}, Tardó: ${tiempoRespuesta.toFixed(2)} segundos`); // Mostrar en consola si la respuesta es correcta o incorrecta y el tiempo de respuesta
+    [...respuestaButtons.children].forEach(boton => boton.disabled = true);
+    siguienteButton.style.display = "block";
 }
 
-
-// Funcion para limpiar respuestas anteriores y ocultar el btn siguiente
+/**
+ * Reinicia el cuestionario y oculta el botón siguiente
+ */
 function reiniciar() {
-    console.log('---Reiniciando el cuestionario---')
-    siguienteButton.style.display = "none"; // Ocultar el botón "Siguiente"
-    respuestaButtons.innerHTML = ""; // Limpiar el contenedor de respuestas
-    avisoElement.innerHTML = ""; // Limpiar el aviso de respuesta correcta o incorrecta
-    preguntaElement.innerHTML = ""; // Limpiar el texto de la pregunta
+    siguienteButton.style.display = "none";
+    respuestaButtons.innerHTML = "";
+    avisoElement.innerHTML = "";
+    preguntaElement.innerHTML = "";
 }
 
-// Funcion para manejar el clic en el botón "Siguiente"
+/**
+ * Maneja el botón "Siguiente"
+ */
 function manejarBotonSiguiente() {
-    console.log('---Botón siguiente clickeado---')
+    preguntaActualIndex++;
 
-    if (++preguntaActualIndex < preguntas.length) { // Incrementar el índice de la pregunta actual y verificar si hay más preguntas
-        mostrarPregunta(); // si hay mas preguntas, mostrar la siguiente pregunta
+    if (preguntaActualIndex < 10) {
+        mostrarPregunta();
     } else {
-        mostrarResultados(); // Si no hay más preguntas, mostrar los resultados
+        mostrarResultados();
     }
 }
 
+/**
+ * Muestra los resultados del juego
+ */
 function mostrarResultados() {
-    console.log('---Mostrando resultados---')
+    numeroPreguntaElement.innerHTML = "Fin del juego";
+    tiempoFin = Date.now();
+    const tiempoTotal = (tiempoFin - tiempoInicio) / 1000;
+    const tiempoPromedio = tiemposRespuestas.reduce((a, b) => a + b, 0) / tiemposRespuestas.length || 0;
 
-    tiempoFin = Date.now(); // Guardar el tiempo de fin
-    const tiempoTotal = (tiempoFin - tiempoInicio) / 1000; // Calcular el tiempo total en segundos
+    reiniciar();
 
-    // Calcular el tiempo promedio por pregunta
-    const tiempoPromedio = tiemposRespuestas.reduce((a, b) => a + b, 0) / tiemposRespuestas.length || 0; // Calcular el tiempo promedio de respuesta
+    avisoElement.innerHTML = `Resultados... Correctas: ${cantCorrectas} | Incorrectas: ${cantIncorrectas} | Duración: ${tiempoTotal.toFixed(2)} s | Tiempo promedio por pregunta: ${tiempoPromedio.toFixed(2)} s`;
 
-    reiniciar(); // Limpiar respuestas anteriores y ocultar el botón "Siguiente"
-    
-    avisoElement.innerHTML = `¡Fin del Juego! | Correctas: ${cant_correctas} | Incorrectas: ${cant_incorrectas} | Duración de partida: ${tiempoTotal.toFixed(2)} segundos | Tiempo promedio por pregunta: ${tiempoPromedio.toFixed(2)} segundos` // Mostrar el resultado en el DOM
-    siguienteButton.innerHTML = "Volver a Jugar"; // Cambiar el texto del botón 
-    siguienteButton.style.display = "block"; // Mostrar el botón "Volver a Jugar"
-
-    console.log(`---Fin del juego---`)
-    console.log(`        Correctas: ${cant_correctas} 
-        Incorrectas: ${cant_incorrectas} 
-        Duración de partida: ${tiempoTotal.toFixed(2)} segundos 
-        Tiempo Promedio por pregunta: ${tiempoPromedio.toFixed(2)} sec.`); // Mostrar en consola el resultado
+    siguienteButton.textContent = "Volver a Jugar";
+    siguienteButton.style.display = "block";
 }
 
-// Agregar un evento de clic al botón "Siguiente"
+// Evento para el botón "Siguiente"
 siguienteButton.addEventListener("click", () => {
-    preguntaActualIndex < preguntas.length ? manejarBotonSiguiente() : comenzarCuestionario(); // Si hay más preguntas, manejar el botón "Siguiente", si no, reiniciar el cuestionario
-})
+    manejarBotonSiguiente();
+});
 
-
-
-
-
+// Iniciar el juego
+document.addEventListener("DOMContentLoaded", () => {
+    comenzarCuestionario();
+});
 
 
 
@@ -274,6 +277,4 @@ async function traducirTexto(texto) {
     }
 }*/
 
-comenzarCuestionario()
 
-console.log('Script cargado...')
