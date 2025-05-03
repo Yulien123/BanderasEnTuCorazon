@@ -1,22 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quizzy</title>
-    <script src="script.js" defer></script>
+    <title>Juego de Preguntas y Respuestas</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
-    <div class="contenedor">
-        <h1>Juego de Preguntas y Respuestas</h1>
-        <div class="formulario">
-            <p id="numero-pregunta"></p>
-            <h2 id="pregunta">Preguntas</h2>
-            <div id="respuestas-buttons"></div>
-        </div>
-        <p id="aviso"></p>
-        <button id="siguiente-btn"></button>
+    <!-- Pantalla de Inicio -->
+    <div id="pantalla-inicio">
+        <h1>¡Bienvenido al Quiz de Países!</h1>
+        <label for="nombre-input">Ingresa tu nombre:</label>
+        <input type="text" id="nombre-input">
+        <button id="comenzar-btn">Comenzar Juego</button>
     </div>
+
+    <!-- Pantalla del Juego -->
+    <div id="pantalla-juego" style="display: none;">
+        <h2 id="numero-pregunta">Pregunta 1 / 10</h2>
+        <p id="pregunta">Cargando...</p>
+        <div id="respuestas-buttons"></div>
+        <p id="aviso"></p>
+        <button id="siguiente-btn" style="display: none;">Siguiente</button>
+    </div>
+
 </body>
 </html>
