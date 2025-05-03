@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking de Jugadores</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>Ranking de Jugadores</h2>
+    <div id="ranking">Cargando...</div>
+    <button onclick="volverAlJuego()">Volver al Juego</button>
+
+    <script>
+        // Función para mostrar el ranking de jugadores
+        // Esta función hace una solicitud al servidor para obtener el ranking y lo muestra en la página
+        function mostrarRanking() {
+            console.log('Cargando ranking...');
+            fetch('/ranking')
+                .then(response => response.json())
+                .then(partidas => {
+                    let rankingHTML = "<ul>";
+                    partidas.forEach(({ jugador, puntaje, respuestasCorrectas, tiempoTotal }, index) => {
+                        rankingHTML += `<li>#${index + 1} <strong>${jugador}</strong> - ${puntaje} pts, ${respuestasCorrectas} correctas, ${tiempoTotal.toFixed(2)} seg.</li>`;
+                    });
+                    rankingHTML += "</ul>";
+                    document.getElementById("ranking").innerHTML = rankingHTML;
+                })
+                .catch(error => {
+                    console.error("Error al obtener ranking:", error);
+                    document.getElementById("ranking").innerHTML = "<p>Error al cargar el ranking.</p>";
+                });
+        }
+        // función para volver al juego
+        // Esta función redirige al usuario a la página principal del juego
+        function volverAlJuego() {
+            console.log('Volviendo al juego...');
+            window.location.href = "index.html";
+        }
+
+        mostrarRanking();
+    </script>
+</body>
+</html>

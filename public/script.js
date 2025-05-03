@@ -2,6 +2,7 @@
 const URL_ALL = "https://restcountries.com/v3.1/all?fields=name,capital,borders,flags,continents,translations";
 
 // Preguntas del cuestionario con valores de puntos
+// Cada pregunta está asociada a un tipo y una cantidad de puntaje
 const preguntas = [
     { pregunta: "¿A qué país le pertenece la ciudad de ", tipo: "ciudad", puntos: 3 },
     { pregunta: "¿Qué país está representado por la siguiente bandera", tipo: "bandera", puntos: 5 },
@@ -29,6 +30,7 @@ let tiempoInicio, tiempoFin;
 let tiemposRespuestas = [];
 
 // Pantalla inicial para ingresar nombre
+// configura la pantalla inicial y escucha el evento de inicio del cuestionario
 document.addEventListener("DOMContentLoaded", () => {
     console.log("Cargando pantalla inicial");
     pantallaJuego.style.display = "none";
@@ -47,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Inicia el cuestionario
+// Función para inicia el cuestionario, resetea variables y muestra la primer pregunta
 function comenzarCuestionario() {
     console.log("Iniciando cuestionario");
     tiempoInicio = Date.now();
@@ -65,7 +67,7 @@ function comenzarCuestionario() {
     mostrarPregunta();
 }
 
-// Obtiene los datos de la API
+// Función async para obtiene los datos de la API
 async function obtenerDatos() {
     console.log("Obteniendo datos de la API");
     try {
@@ -78,44 +80,50 @@ async function obtenerDatos() {
     }
 }
 
-// Devuelve un país aleatorio
+// Función para devolver un país aleatorio 
 function obtenerPaisAleatorio(paises) {
     console.log("Obteniendo un país aleatorio");
     return paises[Math.floor(Math.random() * paises.length)];
 }
 
-// Genera respuestas aleatorias
+// Función para generar respuestas aleatorias para una pregunta determinada
 function generarRespuestas(paises, correcta, tipo) {
     console.log("Generando respuestas aleatorias");
     let respuestas = [];
+
     if (tipo === "limitrofes") {
+        // Obtiene la cantidad de países limítrofes del país correcto
         let cantidadLimitrofes = paises.find(pais => pais.name.common === correcta)?.borders?.length || 0;
         respuestas.push({ respuesta: cantidadLimitrofes === 0 ? "No tiene" : cantidadLimitrofes, correcta: true });
 
+        //Genera opciones incorrectas basadas en diferentes cantidades de países limítrofes
         const opciones = [...new Set(paises.map(pais => pais.borders?.length || 0))]
-            .filter(num => num !== cantidadLimitrofes)
-            .map(num => num === 0 ? "No tiene" : num)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 3);
+            .filter(num => num !== cantidadLimitrofes) // excluye la respuesta correcta
+            .map(num => num === 0 ? "No tiene" : num) // Formatea respuestas
+            .sort(() => Math.random() - 0.5) // Mezcla aleatoriamente
+            .slice(0, 3); // Selecciona 3 opciones incorrectas
 
         respuestas = respuestas.concat(opciones.map(respuesta => ({ respuesta, correcta: false })));
     } else {
+        // Agrega la respuesta correcta
         respuestas.push({ respuesta: correcta, correcta: true });
 
+        // Genera opciones incorrectas basadas en nombres de países diferentes
         const opciones = paises.filter(pais => pais.name.common !== correcta)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 3)
+            .sort(() => Math.random() - 0.5) // Mezcla aleatoriamente
+            .slice(0, 3) // Selecciona tres opciones incorrectas
             .map(pais => ({ respuesta: pais.name.common, correcta: false }));
 
         respuestas = respuestas.concat(opciones);
     }
-
+    
+    // Mezcla todas las respuestas antes de devolverlas
     respuestas.sort(() => Math.random() - 0.5);
     return respuestas;
 }
-/**
- * Muestra la pregunta y las opciones de respuesta
- */
+
+// función async que muestra la pregunta y las opciones de respuesta
+// dependiendo del tipo de pregunta (ciudad, bandera o limitrofes)
 async function mostrarPregunta() {
     console.log("Mostrando pregunta");
     const paises = await obtenerDatos();
@@ -150,9 +158,8 @@ async function mostrarPregunta() {
     preguntaActualIndex++
 }
 
-/**
- * Maneja la selección de respuesta
- */
+// Función para manejar la selección de respuesta, actualiza el puntaje y muestra la siguiente pregunta
+// deshabilita los botones de respuesta y muestra el aviso correspondiente
 function seleccionarRespuesta(e) {
     console.log("Seleccionando respuesta");
     const botonSeleccionado = e.target;
@@ -177,9 +184,7 @@ function seleccionarRespuesta(e) {
     siguienteButton.style.display = "block";
 }
 
-/**
- * Guarda la partida en el servidor
- */
+// Función para guarda la partida en el servidor
 function guardarPartida() {
     console.log("Guardando partida");
     fetch('/guardar-partida', {
@@ -197,10 +202,7 @@ function guardarPartida() {
     .catch(error => console.error("Error al guardar partida:", error));
 }
 
-
-/**
- * Muestra los resultados finales
- */
+// Función que muestra los resultados finales, calcula el tiempo total y promedio, y muestra el ranking
 function mostrarResultados() {
     console.log("Mostrando resultados finales");
     tiempoFin = Date.now();
@@ -215,13 +217,19 @@ function mostrarResultados() {
                                 <p>Duración total: ${tiempoTotal.toFixed(2)} s</p>
                                 <p>Tiempo promedio por pregunta: ${tiempoPromedio.toFixed(2)} s</p>
                                 <button><a href="index.html">Volver a jugar</a></button>
-                                <button>Ver Ranking</button>`;
+                                <button onclick="verRanking()">Ver Ranking</button>`;
 
     pantallaInicio.style.display = "block";
     guardarPartida();
 }
 
-// Maneja el botón "Siguiente"
+// Funcion para redirigir a la página de ranking
+function verRanking() {
+    console.log("Redirigiendo a la página de ranking");
+    window.location.href = "ranking.html";
+}
+
+// Maneja el botón "Siguiente", que muestra la siguiente pregunta o los resultados finales
 siguienteButton.addEventListener("click", () => {
     console.log("Botón siguiente presionado");
     if (preguntaActualIndex < 10) {

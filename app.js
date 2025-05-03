@@ -2,11 +2,13 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
+const morgan = require('morgan');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware para manejar JSON y archivos estáticos
+app.use(morgan('dev')); // Muestra logs detallados en la consola
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
@@ -16,9 +18,12 @@ app.use(cors());
 app.post('/guardar-partida', (req, res) => {
     const { jugador, puntaje, respuestasCorrectas, tiempoTotal } = req.body;
 
+    // En caso de que no exista el json
+    if (!fs.existsSync('partidas.json')) fs.writeFileSync('partidas.json', '[]');
+
     // Leer el archivo JSON
     let partidas = JSON.parse(fs.readFileSync('partidas.json', 'utf8'));
-
+    
     // Agregar la nueva partida
     partidas.push({ jugador, puntaje, respuestasCorrectas, tiempoTotal });
 
@@ -32,32 +37,16 @@ app.post('/guardar-partida', (req, res) => {
     res.json({ mensaje: 'Partida guardada correctamente' });
 });
 
+// Ruta para obtener el ranking de partidas
+app.get('/ranking', (req, res) => {
+    const partidas = JSON.parse(fs.readFileSync('partidas.json', 'utf8'));
+    res.json(partidas);
+});
+
 // Servir la página principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-// Función para traducir un texto usando node-google-translate-skidz -> modularizar esta parte!
-async function traducirAsync(texto, sourceLang = "en", targetLang = "es") {
-    const resultado = await translate({
-        text: texto,
-        source: sourceLang,
-        target: targetLang
-    })
-    return resultado.translation
-}
-
-// Ruta para manejar la traducción
-app.post('/traducir', async (req, res) => {
-    const { texto } = req.body
-    try {
-        const traduccion = await traducirAsync(texto)
-        res.json({ traduccion })
-    } catch (error) {
-        console.error("Error al traducir:", error)
-        res.status(500).json({ error: 'Error al traducir' })
-    }
-})
 
 // Ruta para Errores
 app.use((req, res) => {
