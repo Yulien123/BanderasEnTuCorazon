@@ -156,6 +156,8 @@ async function mostrarPregunta() {
         respuestaButtons.appendChild(boton);
     });
     preguntaActualIndex++
+    siguienteButton.style.display = "none";
+
 }
 
 // Función para manejar la selección de respuesta, actualiza el puntaje y muestra la siguiente pregunta
