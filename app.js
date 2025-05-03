@@ -1,20 +1,41 @@
-const express = require('express')
-const path = require('path')
-const translate = require('node-google-translate-skidz')
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const cors = require('cors');
 
-const app = express()
-//Variable de entorno para el puerto, Si no existe la variable de entorno PORT, se asigna el valor 3000
-const PORT = process.env.PORT ?? 3000
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json()) // Para recibir datos en formato JSON
-// Servir archivos estáticos desde la carpeta 'public'
-app.use(express.static(path.join(__dirname, 'public')))
+// Middleware para manejar JSON y archivos estáticos
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 
-// Endpoint Raíz
+
+// Guarda una partida en el archivo JSON
+app.post('/guardar-partida', (req, res) => {
+    const { jugador, puntaje, respuestasCorrectas, tiempoTotal } = req.body;
+
+    // Leer el archivo JSON
+    let partidas = JSON.parse(fs.readFileSync('partidas.json', 'utf8'));
+
+    // Agregar la nueva partida
+    partidas.push({ jugador, puntaje, respuestasCorrectas, tiempoTotal });
+
+    // Ordenar por puntaje y mantener solo las 20 mejores
+    partidas.sort((a, b) => b.puntaje - a.puntaje || b.respuestasCorrectas - a.respuestasCorrectas || a.tiempoTotal - b.tiempoTotal);
+    partidas = partidas.slice(0, 20);
+
+    // Guardar en el archivo JSON
+    fs.writeFileSync('partidas.json', JSON.stringify(partidas, null, 2));
+
+    res.json({ mensaje: 'Partida guardada correctamente' });
+});
+
+// Servir la página principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'))
-})
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Función para traducir un texto usando node-google-translate-skidz -> modularizar esta parte!
 async function traducirAsync(texto, sourceLang = "en", targetLang = "es") {
@@ -43,9 +64,8 @@ app.use((req, res) => {
     //res.status(404).send('<h1> Error 404 </h1>')
     res.status(404).sendFile(path.join(__dirname, 'public', '404.html'))
 })
-// Levanta el servidor en el puerto enviado por PORT
-// Iniciar con 'npm start'
-app.listen(PORT, () => {
-    console.log(`Server Listening on port http://localhost:${PORT}`)
-})
 
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
