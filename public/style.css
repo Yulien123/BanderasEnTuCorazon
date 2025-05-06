@@ -161,7 +161,9 @@ label {
 #ranking-btn {
     display: none; /* Oculta el botón de ranking al inicio */
 }
-
+#botonRanking {
+    margin-bottom: 30px;
+}
 ul {
     list-style: none;
     padding: 0;
@@ -193,9 +195,6 @@ button:hover {
     transform: scale(1.1);
 }
 
-.botonRanking {
-    display: none; /* Oculta el botón de ranking al inicio */
-}
 
 /* Diseño responsivo */
 @media (max-width: 768px) {

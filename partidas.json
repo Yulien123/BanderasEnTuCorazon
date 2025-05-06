@@ -10,5 +10,11 @@
     "puntaje": 16,
     "respuestasCorrectas": 4,
     "tiempoTotal": 46.018
+  },
+  {
+    "jugador": "Julio",
+    "puntaje": 8,
+    "respuestasCorrectas": 2,
+    "tiempoTotal": 29.444
   }
 ]

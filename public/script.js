@@ -17,6 +17,7 @@ const pantallaJuego = document.getElementById("pantalla-juego");
 const preguntaElement = document.getElementById("pregunta");
 const respuestaButtons = document.getElementById("respuestas-buttons");
 const siguienteButton = document.getElementById("siguiente-btn");
+const botonRanking = document.getElementById("botonRanking")
 const avisoElement = document.getElementById("aviso");
 const numeroPreguntaElement = document.getElementById("numero-pregunta");
 
@@ -45,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         pantallaInicio.style.display = "none";
         pantallaJuego.style.display = "block";
+
         comenzarCuestionario();
     });
 });
@@ -62,6 +64,7 @@ function comenzarCuestionario() {
 
     avisoElement.innerHTML = "";
     siguienteButton.style.display = "none";
+    botonRanking.style.display = "none";
     numeroPreguntaElement.innerHTML = `Pregunta 1 / 10`;
 
     mostrarPregunta();
